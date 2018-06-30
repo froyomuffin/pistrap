@@ -1,0 +1,49 @@
+#!/bin/bash
+
+function partition {
+  boot_partition="$target_disk"1
+  root_partition="$target_disk"2
+
+  umount $target_disk
+
+  echo "
+  o
+  n
+  p
+  1
+
+  +100M
+  t
+  c
+  n
+  p
+  2
+
+
+  w
+  " | fdisk $target_disk
+
+  mkfs.vfat $boot_partition
+  mkdir boot
+  mount $boot_portition boot
+
+  mkfs.ext4 $root_partition
+  mkdir root
+  mount $root_partition root
+}
+
+function install {
+  wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz
+  bsdtar -xpf ArchLinuxARM-rpi-latest.tar.gz -C root
+  sync
+
+  mv root/boot/* boot
+  umount boot root
+}
+
+echo "Starting"
+
+target_disk="$1"
+
+partition
+install
