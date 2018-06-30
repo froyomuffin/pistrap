@@ -13,12 +13,13 @@ function partition {
   1
 
   +100M
+  Y
   t
   c
   n
   p
   2
-
+  Y
 
   w
   " | fdisk $target_disk
