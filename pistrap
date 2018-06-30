@@ -1,51 +1,47 @@
 #!/bin/bash
 
+function unmount {
+  umount $boot_partition
+  umount $root_partition
+}
+
 function partition {
-  boot_partition="$target_disk"1
-  root_partition="$target_disk"2
+  unmount
 
-  umount $target_disk
+  parted -a optimal -s $target_disk mklabel msdos
+  parted -a optimal -s $target_disk mkpart primary fat32 0% 100MiB
+  parted -a optimal -s $target_disk mkpart primary ext4 100MiB 100%
+  parted -a optimal -s $target_disk set 2 lba off
+}
 
-  echo "
-  o
-  n
-  p
-  1
+function format {
+  unmount
 
-  +100M
-  Y
-  t
-  c
-  n
-  p
-  2
-  Y
-
-  w
-  " | fdisk $target_disk
-
-  umount $target_disk
-
-  mkfs.vfat -F $boot_partition
-  mkdir boot
-  mount $boot_portition boot
-
+  mkfs.vfat $boot_partition
   mkfs.ext4 -F $root_partition
-  mkdir root
-  mount $root_partition root
 }
 
 function install {
+  mkdir boot
+  mount $boot_partition boot
+
+  mkdir root
+  mount $root_partition root
+
   curl -L http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz | bsdtar -xpf- -C root
   sync
 
   mv root/boot/* boot
-  umount boot root
+
+  unmount
 }
 
 echo "Starting"
 
 target_disk="$1"
+boot_partition="$target_disk"1
+root_partition="$target_disk"2
 
 partition
+format
 install
