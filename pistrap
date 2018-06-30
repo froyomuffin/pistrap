@@ -23,11 +23,13 @@ function partition {
   w
   " | fdisk $target_disk
 
-  mkfs.vfat $boot_partition
+  umount $target_disk
+
+  mkfs.vfat -F $boot_partition
   mkdir boot
   mount $boot_portition boot
 
-  mkfs.ext4 $root_partition
+  mkfs.ext4 -F $root_partition
   mkdir root
   mount $root_partition root
 }
