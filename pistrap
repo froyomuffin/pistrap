@@ -1,12 +1,8 @@
 #!/bin/bash
 
-function unmount {
+function partition {
   umount $boot_partition
   umount $root_partition
-}
-
-function partition {
-  unmount
 
   parted -a optimal -s $target_disk mklabel msdos
   parted -a optimal -s $target_disk mkpart primary fat32 0% 100MiB
@@ -15,7 +11,8 @@ function partition {
 }
 
 function format {
-  unmount
+  umount $boot_partition
+  umount $root_partition
 
   mkfs.vfat $boot_partition
   mkfs.ext4 -F $root_partition
@@ -23,9 +20,9 @@ function format {
 
 function install {
   mkdir boot
-  mount $boot_partition boot
-
   mkdir root
+
+  mount $boot_partition boot
   mount $root_partition root
 
   curl -L http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz | bsdtar -xpf- -C root
@@ -33,7 +30,46 @@ function install {
 
   mv root/boot/* boot
 
-  unmount
+  umount boot
+  umount root
+
+  rm -r boot
+  rm -r root
+}
+
+function setup_wifi {
+  mkdir root
+
+  mount $root_partition root
+
+  # From https://ladvien.com/installing-arch-linux-raspberry-pi-zero-w/
+  cat << EOF > root/etc/systemd/network/wlan0.network
+[Match]
+Name=wlan0
+
+[Network]
+DHCP=yes
+EOF
+
+  wpa_passphrase "$ssid" "$pass" > root/etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+
+  ln -s \
+    /usr/lib/systemd/system/wpa_supplicant@.service \
+    root/etc/systemd/system/multi-user.target.wants/wpa_supplicant@wlan0.service
+
+  umount root
+  rm -r root
+}
+
+function prep_keyring_init {
+  mkdir root
+  mount $root_partition root
+
+  echo 'pacman-key --init' >> root/home/alarm/init_keyring
+  echo 'pacman-key --populate archlinuxarm' >> root/home/alarm/init_keyring
+
+  umount root
+  rm -r root
 }
 
 echo "Starting"
@@ -42,6 +78,11 @@ target_disk="$1"
 boot_partition="$target_disk"1
 root_partition="$target_disk"2
 
+ssid="$2"
+pass="$3"
+
 partition
 format
 install
+setup_wifi
+prep_keyring_init
