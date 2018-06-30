@@ -72,6 +72,14 @@ function prep_keyring_init {
   rm -r root
 }
 
+function underlined_print {
+  string=$1
+
+  echo
+  echo $string
+  echo $string | sed 's/./-/g'
+}
+
 echo "Starting"
 
 target_disk="$1"
@@ -81,8 +89,17 @@ root_partition="$target_disk"2
 ssid="$2"
 pass="$3"
 
+underlined_print "Partitioning"
 partition
+
+underlined_print "Formatting"
 format
+
+underlined_print "Installing arch"
 install
+
+underlined_print "Setting up WiFi"
 setup_wifi
+
+underlined_print "Adding keyring init script to alarm home directory"
 prep_keyring_init
