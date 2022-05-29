@@ -87,7 +87,14 @@ boot_partition="$target_disk"1
 root_partition="$target_disk"2
 
 ssid="$2"
-pass="$3"
+
+if [ -z "$target_disk" ] || [ -z "$ssid" ]; then
+  echo "Usage: pistreap <target_disk> <ssid>"
+  exit
+fi
+
+echo "Enter passphrase for SSID \"$ssid\":"
+read pass
 
 underlined_print "Partitioning"
 partition
