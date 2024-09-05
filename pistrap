@@ -25,7 +25,7 @@ function install {
   mount $boot_partition boot
   mount $root_partition root
 
-  curl -L http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz | bsdtar -xpf- -C root
+  curl -L https://os.archlinuxarm.org/os//ArchLinuxARM-rpi-armv7-latest.tar.gz | bsdtar -xpf- -C root
   sync
 
   mv root/boot/* boot
