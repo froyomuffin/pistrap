@@ -25,10 +25,12 @@ function install {
   mount $boot_partition boot
   mount $root_partition root
 
-  curl -L https://os.archlinuxarm.org/os//ArchLinuxARM-rpi-armv7-latest.tar.gz | bsdtar -xpf- -C root
+  curl -L -k http://os.archlinuxarm.org/os//ArchLinuxARM-rpi-armv7-latest.tar.gz | bsdtar -xpf- -C root
   sync
 
   mv root/boot/* boot
+
+  sync
 
   umount boot
   umount root
@@ -57,6 +59,8 @@ EOF
     /usr/lib/systemd/system/wpa_supplicant@.service \
     root/etc/systemd/system/multi-user.target.wants/wpa_supplicant@wlan0.service
 
+  sync
+
   umount root
   rm -r root
 }
@@ -67,6 +71,8 @@ function prep_keyring_init {
 
   echo 'pacman-key --init' >> root/home/alarm/init_keyring
   echo 'pacman-key --populate archlinuxarm' >> root/home/alarm/init_keyring
+
+  sync
 
   umount root
   rm -r root
